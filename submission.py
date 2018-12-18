@@ -19,7 +19,7 @@ def furthest(pos, lst):
   furthestPos = None
   furthestDist = -1
   for tup in list(map(lambda idx: (idx, util.manhattanDistance(idx, pos)), lst)):
-    furthestPos, furthestDist = tup if tup[1] > furthestDist else furthestPos, furthestDist
+    (furthestPos, furthestDist) = tup if tup[1] > furthestDist else (furthestPos, furthestDist)
   return furthestPos, furthestDist
 
 class ReflexAgent(Agent):
@@ -88,15 +88,22 @@ def betterEvaluationFunction(gameState):
   The GameState class is defined in pacman.py and you might want to look into that for other helper methods.
   """
   # assert isinstance(gameState, GameState)
-  global isFirst
-  global food
-  if isFirst:
-    initFood(gameState, food)
-    isFirst = False
+  # global isFirst
+  # global food
+  # if isFirst:
+  #   initFood(gameState, food)
+    # isFirst = False
+  food = set()
+  grid = gameState.getFood() #TODO: maybe change to calculate only once
+  for y in range(grid.height):
+    for x in range(grid.width):
+      if grid[x][y]:
+        food.add((x, y))
+
   pacmanPos = gameState.getPacmanPosition()
   furthestFoodPos = (furthest(pacmanPos, food))[0]
   biggestDistFoodDist = (furthest(furthestFoodPos, food))[1]
-  return 2 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist
+  return 2 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist + gameState.getScore()
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
@@ -124,10 +131,25 @@ class MultiAgentSearchAgent(Agent):
 ######################################################################################
 # c: implementing minimax
 
+
+
 class MinimaxAgent(MultiAgentSearchAgent):
   """
     Your minimax agent
   """
+
+  def miniMax(self, gameState, depth):
+    if gameState.isLose() or gameState.isWin():
+      return gameState.getScore()
+
+    if depth == gameState.getNumAgents() * self.depth:
+      return self.evaluationFunction(gameState)
+
+    agentIndex = (depth % gameState.getNumAgents())
+    isMax = (agentIndex == 0)
+    values = [self.miniMax(gameState.generateSuccessor(agentIndex, action), depth+1) for action in gameState.getLegalActions(agentIndex)]
+    return max(values) if isMax else min(values)
+
 
   def getAction(self, gameState):
     """
@@ -165,7 +187,18 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE
-    raise Exception("Not implemented yet")
+
+    # Collect legal moves and successor states
+    legalMoves = gameState.getLegalActions()
+
+    # Choose one of the best actions
+    scores = [self.miniMax(gameState.generateSuccessor(0, action), 1) for action in legalMoves]
+    bestScore = max(scores)
+    bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+    chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+    return legalMoves[chosenIndex]
+
+    # raise Exception("Not implemented yet")
     # END_YOUR_CODE
 
 ######################################################################################
