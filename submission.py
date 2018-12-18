@@ -1,5 +1,6 @@
 import random, util
 from game import Agent
+import math
 
 #     ********* Reflex agent- sections a and b *********
 
@@ -103,7 +104,7 @@ def betterEvaluationFunction(gameState):
   pacmanPos = gameState.getPacmanPosition()
   furthestFoodPos = (furthest(pacmanPos, food))[0]
   biggestDistFoodDist = (furthest(furthestFoodPos, food))[1]
-  return 2 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist + gameState.getScore()
+  return 4 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist + gameState.getScore()
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
@@ -209,13 +210,50 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     Your minimax agent with alpha-beta pruning
   """
 
+  def alphaBeta(self, gameState, depth, alpha, beta):
+    if gameState.isLose() or gameState.isWin():
+      return gameState.getScore()
+
+    if depth == gameState.getNumAgents() * self.depth:
+      return self.evaluationFunction(gameState)
+
+    agentIndex = (depth % gameState.getNumAgents())
+    if agentIndex == 0:
+      currMax = -math.inf
+      for action in gameState.getLegalActions(agentIndex):
+        v = self.alphaBeta(gameState.generateSuccessor(agentIndex, action), depth + 1, alpha, beta)
+        currMax = max(v, currMax)
+        alpha = max(currMax, alpha)
+        if currMax >= beta:
+          return math.inf
+      return currMax
+    else:
+      currMin = math.inf
+      for action in gameState.getLegalActions(agentIndex):
+        v = self.alphaBeta(gameState.generateSuccessor(agentIndex, action), depth + 1, alpha, beta)
+        currMin = min(v, currMin)
+        beta = min(currMin, beta)
+        if currMin <= alpha:
+          return -math.inf
+      return currMin
+
+
   def getAction(self, gameState):
     """
       Returns the minimax action using self.depth and self.evaluationFunction
     """
 
+    legalMoves = gameState.getLegalActions()
+
+    # Choose one of the best actions
+    scores = [self.alphaBeta(gameState.generateSuccessor(0, action), 1, -math.inf, math.inf) for action in legalMoves]
+    bestScore = max(scores)
+    bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+    chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+    return legalMoves[chosenIndex]
+
     # BEGIN_YOUR_CODE
-    raise Exception("Not implemented yet")
+    # raise Exception("Not implemented yet")
     # END_YOUR_CODE
 
 ######################################################################################
