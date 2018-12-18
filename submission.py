@@ -2,6 +2,26 @@ import random, util
 from game import Agent
 
 #     ********* Reflex agent- sections a and b *********
+
+food = set()
+isFirst = True
+
+# util functions
+
+def initFood(gameState, food):
+  grid = gameState.getFood()
+  for y in range(grid.height):
+    for x in range(grid.width):
+      if grid[x][y]:
+        food.add((x, y))
+
+def furthest(pos, lst):
+  furthestPos = None
+  furthestDist = -1
+  for tup in list(map(lambda idx: (idx, util.manhattanDistance(idx, pos)), lst)):
+    furthestPos, furthestDist = tup if tup[1] > furthestDist else furthestPos, furthestDist
+  return furthestPos, furthestDist
+
 class ReflexAgent(Agent):
   """
     A reflex agent chooses an action at each choice point by examining
@@ -37,7 +57,7 @@ class ReflexAgent(Agent):
     and returns a number, where higher numbers are better.
     """
     successorGameState = currentGameState.generatePacmanSuccessor(action)
-    return scoreEvaluationFunction(successorGameState)
+    return betterEvaluationFunction(successorGameState)
 
 
 #     ********* Evaluation functions *********
@@ -67,8 +87,19 @@ def betterEvaluationFunction(gameState):
   gameState.getScore():
   The GameState class is defined in pacman.py and you might want to look into that for other helper methods.
   """
+  # assert isinstance(gameState, GameState)
+  global isFirst
+  global food
+  if isFirst:
+    initFood(gameState, food)
+    isFirst = False
+  pacmanPos = gameState.getPacmanPosition()
+  furthestFoodPos = (furthest(pacmanPos, food))[0]
+  biggestDistFoodDist = (furthest(furthestFoodPos, food))[1]
+  return 2 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
+
 
 class MultiAgentSearchAgent(Agent):
   """
