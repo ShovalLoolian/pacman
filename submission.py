@@ -1,5 +1,6 @@
 import random, util
 from game import Agent
+import ghostAgents
 import math
 
 #     ********* Reflex agent- sections a and b *********
@@ -102,7 +103,7 @@ def betterEvaluationFunction(gameState):
         food.add((x, y))
 
   pacmanPos = gameState.getPacmanPosition()
-  furthestFoodPos = (furthest(pacmanPos, food))[0]
+  furthestFoodPos = (furthest(util.nearestPoint(pacmanPos), food))[0]
   biggestDistFoodDist = (furthest(furthestFoodPos, food))[1]
   return 4 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist + gameState.getScore()
 
@@ -128,6 +129,23 @@ class MultiAgentSearchAgent(Agent):
     self.index = 0 # Pacman is always agent index 0
     self.evaluationFunction = util.lookup(evalFn, globals())
     self.depth = int(depth)
+
+  def expectimax(self, gameState, depth, ghostType):
+
+    if gameState.isLose() or gameState.isWin():
+        return gameState.getScore()
+
+    if depth == gameState.getNumAgents() * self.depth:
+        return self.evaluationFunction(gameState)
+
+    agentIndex = (depth % gameState.getNumAgents())
+    isMax = (agentIndex == 0)
+    values = [self.expectimax(gameState.generateSuccessor(agentIndex, action), depth + 1, ghostType) for action in
+              gameState.getLegalActions(agentIndex)]
+    ghost = ghostAgents.util.lookup(ghostType, globals())(agentIndex)
+    dist = ghost.getDistribution(gameState)
+
+    return max(values) if isMax else sum([dist[i]*values[i] for i in range(len(values))])
 
 ######################################################################################
 # c: implementing minimax
@@ -263,6 +281,7 @@ class RandomExpectimaxAgent(MultiAgentSearchAgent):
   """
     Your expectimax agent
   """
+  RANDOM = 'ghostAgents.RandomGhost'
 
   def getAction(self, gameState):
     """
@@ -271,8 +290,18 @@ class RandomExpectimaxAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE
-    raise Exception("Not implemented yet")
+    legalMoves = gameState.getLegalActions()
+
+    # Choose one of the best actions
+    scores = [self.expectimax(gameState.generateSuccessor(0, action), 0, self.RANDOM) for action in legalMoves]
+    bestScore = max(scores)
+    bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+    chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+    return legalMoves[chosenIndex]
+    # raise Exception("Not implemented yet")
     # END_YOUR_CODE
+
+
 
 ######################################################################################
 # f: implementing directional expectimax
