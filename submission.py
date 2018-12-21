@@ -1,28 +1,27 @@
 import random, util
 from game import Agent
-import ghostAgents
+import ghostAgents, pacman
 import math
 
 #     ********* Reflex agent- sections a and b *********
 
-food = set()
-isFirst = True
-
 # util functions
 
-def initFood(gameState, food):
+def initFood(gameState):
+  food = set()
   grid = gameState.getFood()
   for y in range(grid.height):
     for x in range(grid.width):
       if grid[x][y]:
         food.add((x, y))
+  return food
 
 def furthest(pos, lst):
   furthestPos = None
   furthestDist = -1
   for tup in list(map(lambda idx: (idx, util.manhattanDistance(idx, pos)), lst)):
     (furthestPos, furthestDist) = tup if tup[1] > furthestDist else (furthestPos, furthestDist)
-  return furthestPos, furthestDist
+  return furthestPos
 
 class ReflexAgent(Agent):
   """
@@ -73,6 +72,8 @@ def scoreEvaluationFunction(gameState):
 
 ######################################################################################
 # b: implementing a better heuristic function
+
+
 def betterEvaluationFunction(gameState):
   """
 
@@ -89,23 +90,16 @@ def betterEvaluationFunction(gameState):
   gameState.getScore():
   The GameState class is defined in pacman.py and you might want to look into that for other helper methods.
   """
-  # assert isinstance(gameState, GameState)
-  # global isFirst
-  # global food
-  # if isFirst:
-  #   initFood(gameState, food)
-    # isFirst = False
-  food = set()
-  grid = gameState.getFood() #TODO: maybe change to calculate only once
-  for y in range(grid.height):
-    for x in range(grid.width):
-      if grid[x][y]:
-        food.add((x, y))
 
-  pacmanPos = gameState.getPacmanPosition()
-  furthestFoodPos = (furthest(util.nearestPoint(pacmanPos), food))[0]
-  biggestDistFoodDist = (furthest(furthestFoodPos, food))[1]
-  return 4 * max(gameState.getFood().height, gameState.getFood().width) - biggestDistFoodDist + gameState.getScore()
+  pacman_pos = gameState.getPacmanPosition()
+  food = initFood(gameState)
+  diagonal = 4 * max(gameState.getFood().height, gameState.getFood().width)
+
+  furthest_food_pos = furthest(pacman_pos, food)
+  biggest_dist_food = furthest(furthest_food_pos, food)
+  dist_from_biggest_dist_food = util.manhattanDistance(pacman_pos, biggest_dist_food) if biggest_dist_food else 0#TODO: change to BFS in a preprocessed maze
+
+  return ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + gameState.getScore()
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
