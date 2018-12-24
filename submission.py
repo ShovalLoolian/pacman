@@ -1,4 +1,4 @@
-import random, util
+import random, util, time
 from game import Agent
 import ghostAgents, pacman
 import math
@@ -13,6 +13,19 @@ def furthest(pos, lst):
   for tup in list(map(lambda idx: (idx, util.manhattanDistance(idx, pos)), lst)):
     (furthestPos, furthestDist) = tup if tup[1] > furthestDist else (furthestPos, furthestDist)
   return furthestPos
+
+def bfs(grid, fromPos, toPos, length):
+  if fromPos == toPos:
+    return length
+  if fromPos[0] < 0 or fromPos[0] >= grid.width or fromPos[0] < 0 or fromPos[0] >= grid.height\
+          or grid[fromPos[0]][fromPos[1]]:
+    return math.inf
+  grid[fromPos[0]][fromPos[1]] = True
+  return min([bfs(grid, (fromPos[0] + 1, fromPos[1]), toPos, length + 1),
+              bfs(grid, (fromPos[0] - 1, fromPos[1]), toPos, length + 1),
+              bfs(grid, (fromPos[0], fromPos[1] + 1), toPos, length + 1),
+              bfs(grid, (fromPos[0], fromPos[1] - 1), toPos, length + 1)])
+
 
 class ReflexAgent(Agent):
   """
@@ -88,8 +101,12 @@ def betterEvaluationFunction(gameState):
 
   furthest_food_pos = furthest(pacman_pos, food)
   biggest_dist_food = furthest(furthest_food_pos, food)
-  dist_from_biggest_dist_food = util.manhattanDistance(pacman_pos, biggest_dist_food) if biggest_dist_food else 0 # TODO: change to BFS in a preprocessed maze
-
+  dist_from_biggest_dist_food = bfs(gameState.getWalls().deepCopy(), pacman_pos, biggest_dist_food, 0)\
+    if biggest_dist_food else 0
+  # print("pac is in " + str(pacman_pos))
+  # print("food is in " + str(biggest_dist_food))
+  # print("bfs returned " + str(dist_from_biggest_dist_food))
+  # time.sleep(3)
   return gameState.getScore() +((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
@@ -128,9 +145,12 @@ class MultiAgentSearchAgent(Agent):
     values = [self.expectimax(gameState.generateSuccessor(agentIndex, action), depth + 1, ghostType) for action in
               gameState.getLegalActions(agentIndex)]
     ghost = ghostAgents.util.lookup(ghostType, globals())(agentIndex)
-    dist = ghost.getDistribution(gameState)
-    distList = [dist[action] for action in gameState.getLegalActions(agentIndex)]
-    return max(values) if isMax else sum([distList[i]*values[i] for i in range(len(values))])
+    if isMax:
+      return max(values)
+    else:
+      dist = ghost.getDistribution(gameState)
+      distList = None if isMax else [dist[action] for action in gameState.getLegalActions(agentIndex)]
+      return sum([distList[i]*values[i] for i in range(len(values))])
 
 ######################################################################################
 # c: implementing minimax
