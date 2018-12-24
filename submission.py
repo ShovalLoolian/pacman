@@ -7,15 +7,6 @@ import math
 
 # util functions
 
-def initFood(gameState):
-  food = set()
-  grid = gameState.getFood()
-  for y in range(grid.height):
-    for x in range(grid.width):
-      if grid[x][y]:
-        food.add((x, y))
-  return food
-
 def furthest(pos, lst):
   furthestPos = None
   furthestDist = -1
@@ -92,12 +83,12 @@ def betterEvaluationFunction(gameState):
   """
 
   pacman_pos = gameState.getPacmanPosition()
-  food = initFood(gameState)
+  food = gameState.getFood().asList()
   diagonal = 4 * max(gameState.getFood().height, gameState.getFood().width)
 
   furthest_food_pos = furthest(pacman_pos, food)
   biggest_dist_food = furthest(furthest_food_pos, food)
-  dist_from_biggest_dist_food = util.manhattanDistance(pacman_pos, biggest_dist_food) if biggest_dist_food else 0#TODO: change to BFS in a preprocessed maze
+  dist_from_biggest_dist_food = util.manhattanDistance(pacman_pos, biggest_dist_food) if biggest_dist_food else 0 # TODO: change to BFS in a preprocessed maze
 
   return gameState.getScore() +((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
 
@@ -139,10 +130,6 @@ class MultiAgentSearchAgent(Agent):
     ghost = ghostAgents.util.lookup(ghostType, globals())(agentIndex)
     dist = ghost.getDistribution(gameState)
     distList = [dist[action] for action in gameState.getLegalActions(agentIndex)]
-    # print("Dist is " + str(distList) + "\n")
-    # for i in range(len(values)):
-    #     print(str(values[i]) + "\n")
-    # print("Sum is " + str(sum([distList[i]*values[i] for i in range(len(values))])) + "\n\n")
     return max(values) if isMax else sum([distList[i]*values[i] for i in range(len(values))])
 
 ######################################################################################
