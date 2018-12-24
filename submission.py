@@ -278,7 +278,7 @@ class RandomExpectimaxAgent(MultiAgentSearchAgent):
     legalMoves = gameState.getLegalActions()
 
     # Choose one of the best actions
-    scores = [self.expectimax(gameState.generateSuccessor(0, action), 0, self.RANDOM) for action in legalMoves]
+    scores = [self.expectimax(gameState.generateSuccessor(0, action), 1, self.RANDOM) for action in legalMoves]
     bestScore = max(scores)
     bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
     chosenIndex = random.choice(bestIndices) # Pick randomly among the best
@@ -295,6 +295,7 @@ class DirectionalExpectimaxAgent(MultiAgentSearchAgent):
   """
     Your expectimax agent
   """
+  DIRECTIONAL = 'ghostAgents.DirectionalGhost'
 
   def getAction(self, gameState):
     """
@@ -303,7 +304,16 @@ class DirectionalExpectimaxAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE
-    raise Exception("Not implemented yet")
+    legalMoves = gameState.getLegalActions()
+
+    # Choose one of the best actions
+    scores = [self.expectimax(gameState.generateSuccessor(0, action), 1, self.DIRECTIONAL) for action in legalMoves]
+    bestScore = max(scores)
+    bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+    chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+    return legalMoves[chosenIndex]
+
+    # raise Exception("Not implemented yet")
     # END_YOUR_CODE
 
 
