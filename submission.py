@@ -99,7 +99,7 @@ def betterEvaluationFunction(gameState):
   biggest_dist_food = furthest(furthest_food_pos, food)
   dist_from_biggest_dist_food = util.manhattanDistance(pacman_pos, biggest_dist_food) if biggest_dist_food else 0#TODO: change to BFS in a preprocessed maze
 
-  return ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + gameState.getScore()
+  return gameState.getScore() +((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
@@ -138,8 +138,12 @@ class MultiAgentSearchAgent(Agent):
               gameState.getLegalActions(agentIndex)]
     ghost = ghostAgents.util.lookup(ghostType, globals())(agentIndex)
     dist = ghost.getDistribution(gameState)
-
-    return max(values) if isMax else sum([dist[i]*values[i] for i in range(len(values))])
+    distList = [dist[action] for action in gameState.getLegalActions(agentIndex)]
+    # print("Dist is " + str(distList) + "\n")
+    # for i in range(len(values)):
+    #     print(str(values[i]) + "\n")
+    # print("Sum is " + str(sum([distList[i]*values[i] for i in range(len(values))])) + "\n\n")
+    return max(values) if isMax else sum([distList[i]*values[i] for i in range(len(values))])
 
 ######################################################################################
 # c: implementing minimax
