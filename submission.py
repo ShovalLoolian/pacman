@@ -38,12 +38,14 @@ def bonusForFleeGhost(gameState, ghostPos):
     distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
     return min(MAX_DIST_FROM_GHOST, distFromGhost)
 
-def bonusForScaredGhost(gameState, ghostPos):
+def bonusForScaredGhost(gameState, ghostIdx):
     pacmanPos = gameState.getPacmanPosition()
-    if util.manhattanDistance(pacmanPos, ghostPos) <= MIN_DIST_FROM_GHOST:
+    ghostPos = gameState.getGhostPosition(ghostIdx)
+    timer = gameState.getGhostState(ghostIdx).scaredTimer
+    if util.manhattanDistance(pacmanPos, ghostPos) >= timer:
         return 0
     distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
-    return MIN_DIST_FROM_GHOST - distFromGhost if distFromGhost <= MIN_DIST_FROM_GHOST else 0
+    return MIN_DIST_FROM_GHOST - distFromGhost if distFromGhost <= timer else 0
 
 # def bonusForScaredGhost(gameState, ghostPos)
 
@@ -138,15 +140,15 @@ def betterEvaluationFunction(gameState):
   fleeGhostsPos = [gameState.getGhostPosition(i) for i in range(1, gameState.getNumAgents()) if gameState.getGhostState(i).scaredTimer <= 0]
   sumBonusForFleeGhosts = sum([bonusForFleeGhost(gameState, ghostPos) for ghostPos in fleeGhostsPos])
 
-  scaredGhostsPos = [gameState.getGhostPosition(i) for i in range(1, gameState.getNumAgents()) if
+  scaredGhostsIdxs = [i for i in range(1, gameState.getNumAgents()) if
                    gameState.getGhostState(i).scaredTimer > 0]
-  sumBonusForScaredGhosts = sum([bonusForScaredGhost(gameState, ghostPos) for ghostPos in scaredGhostsPos])
+  sumBonusForScaredGhosts = sum([bonusForScaredGhost(gameState, i) for i in scaredGhostsIdxs])
   # i = (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400)
   # if i < 400:
     # print(i)
   return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + \
-         (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400) +\
-        (100 if len(scaredGhostsPos) == 0 else (sumBonusForScaredGhosts/(len(scaredGhostsPos)*MIN_DIST_FROM_GHOST)) * 100)
+         (200 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 200) +\
+        (200 if len(scaredGhostsIdxs) == 0 else (sumBonusForScaredGhosts/(len(scaredGhostsIdxs)*MIN_DIST_FROM_GHOST)) * 200)
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
