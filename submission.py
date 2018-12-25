@@ -20,11 +20,11 @@ def bfs(grid, fromPos, toPos, length):
   if fromPos == toPos:
     return length
   if length == MAXLEN:
-    return util.manhattanDistance(fromPos, toPos)
+    return MAXLEN + util.manhattanDistance(fromPos, toPos)
   if fromPos[0] < 0 or fromPos[0] >= grid.width or fromPos[1] < 0 or fromPos[1] >= grid.height\
           or grid[fromPos[0]][fromPos[1]]:
     return math.inf
-    grid[fromPos[0]][fromPos[1]] = True
+  grid[fromPos[0]][fromPos[1]] = True
   return min([bfs(grid.deepCopy(), (fromPos[0] + 1, fromPos[1]), toPos, length + 1),
               bfs(grid.deepCopy(), (fromPos[0] - 1, fromPos[1]), toPos, length + 1),
               bfs(grid.deepCopy(), (fromPos[0], fromPos[1] + 1), toPos, length + 1),
@@ -52,15 +52,15 @@ class ReflexAgent(Agent):
     legalMoves = gameState.getLegalActions()
 
     # Choose one of the best actions
-    scoresssss = [(action ,self.evaluationFunction(gameState, action)) for action in legalMoves]
+    # scoresssss = [(action ,self.evaluationFunction(gameState, action)) for action in legalMoves]
     scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
 
     bestScore = max(scores)
     bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
     chosenIndex = random.choice(bestIndices) # Pick randomly among the best
-    for score in scoresssss:
-      print(score)
-    print("chose " + str(legalMoves[chosenIndex]) + " out of " + str(scoresssss) + "\n\n")
+    # for score in scoresssss:
+    #   print(score)
+    # print("chose " + str(legalMoves[chosenIndex]) + " out of " + str(scoresssss) + "\n\n")
     # time.sleep(1)
 
     return legalMoves[chosenIndex]
@@ -71,7 +71,7 @@ class ReflexAgent(Agent):
     and returns a number, where higher numbers are better.
     """
     successorGameState = currentGameState.generatePacmanSuccessor(action)
-    return betterEvaluationFunction(successorGameState, action) #TODO: removeeeeeeeeeeeeeee action
+    return betterEvaluationFunction(successorGameState)
 
 
 #     ********* Evaluation functions *********
@@ -87,7 +87,7 @@ def scoreEvaluationFunction(gameState):
 # b: implementing a better heuristic function
 
 
-def betterEvaluationFunction(gameState, action): #TODO: removeeeeeeeeeeeeeeeeeeeeee
+def betterEvaluationFunction(gameState):
   """
 
   The betterEvaluationFunction takes in a GameState (pacman.py) and should return a number, where higher numbers are better.
@@ -116,8 +116,8 @@ def betterEvaluationFunction(gameState, action): #TODO: removeeeeeeeeeeeeeeeeeee
   # print("food is in " + str(biggest_dist_food))
   # print("bfs returned " + str(dist_from_biggest_dist_food))
   # time.sleep(3)
-  print("biggest food pos is " + str(biggest_dist_food) + " for action " + str(action) + " with pacman in " + str(pacman_pos))
-  print(dist_from_biggest_dist_food)
+  # print("biggest food pos is " + str(biggest_dist_food) + " for action " + str(action) + " with pacman in " + str(pacman_pos))
+  # print(dist_from_biggest_dist_food)
   return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
