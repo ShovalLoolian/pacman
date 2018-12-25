@@ -4,8 +4,8 @@ import ghostAgents, pacman
 import math
 
 MAXLEN = 6
-MAX_DIST_FROM_GHOST = 6
-
+MAX_DIST_FROM_GHOST = 3
+MIN_DIST_FROM_GHOST = 20
 #     ********* Reflex agent- sections a and b *********
 
 # util functions
@@ -37,6 +37,13 @@ def bonusForFleeGhost(gameState, ghostPos):
         return MAX_DIST_FROM_GHOST
     distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
     return min(MAX_DIST_FROM_GHOST, distFromGhost)
+
+def bonusForScaredGhost(gameState, ghostPos):
+    pacmanPos = gameState.getPacmanPosition()
+    if util.manhattanDistance(pacmanPos, ghostPos) <= MIN_DIST_FROM_GHOST:
+        return 0
+    distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
+    return MIN_DIST_FROM_GHOST - distFromGhost if distFromGhost <= MIN_DIST_FROM_GHOST else 0
 
 # def bonusForScaredGhost(gameState, ghostPos)
 
@@ -131,8 +138,15 @@ def betterEvaluationFunction(gameState):
   fleeGhostsPos = [gameState.getGhostPosition(i) for i in range(1, gameState.getNumAgents()) if gameState.getGhostState(i).scaredTimer <= 0]
   sumBonusForFleeGhosts = sum([bonusForFleeGhost(gameState, ghostPos) for ghostPos in fleeGhostsPos])
 
+  scaredGhostsPos = [gameState.getGhostPosition(i) for i in range(1, gameState.getNumAgents()) if
+                   gameState.getGhostState(i).scaredTimer > 0]
+  sumBonusForScaredGhosts = sum([bonusForScaredGhost(gameState, ghostPos) for ghostPos in scaredGhostsPos])
+  # i = (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400)
+  # if i < 400:
+    # print(i)
   return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + \
-         (sumBonusForFleeGhosts/((gameState.getNumAgents()-1)*MAX_DIST_FROM_GHOST)) * 5
+         (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400) +\
+        (100 if len(scaredGhostsPos) == 0 else (sumBonusForScaredGhosts/(len(scaredGhostsPos)*MIN_DIST_FROM_GHOST)) * 100)
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
