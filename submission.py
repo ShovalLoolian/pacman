@@ -4,6 +4,7 @@ import ghostAgents, pacman
 import math
 
 MAXLEN = 6
+MAX_DIST_FROM_GHOST = 6
 
 #     ********* Reflex agent- sections a and b *********
 
@@ -30,6 +31,14 @@ def bfs(grid, fromPos, toPos, length):
               bfs(grid.deepCopy(), (fromPos[0], fromPos[1] + 1), toPos, length + 1),
               bfs(grid.deepCopy(), (fromPos[0], fromPos[1] - 1), toPos, length + 1)])
 
+def bonusForFleeGhost(gameState, ghostPos):
+    pacmanPos = gameState.getPacmanPosition()
+    if util.manhattanDistance(pacmanPos, ghostPos) >= MAX_DIST_FROM_GHOST:
+        return MAX_DIST_FROM_GHOST
+    distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
+    return min(MAX_DIST_FROM_GHOST, distFromGhost)
+
+# def bonusForScaredGhost(gameState, ghostPos)
 
 class ReflexAgent(Agent):
   """
@@ -118,7 +127,12 @@ def betterEvaluationFunction(gameState):
   # time.sleep(3)
   # print("biggest food pos is " + str(biggest_dist_food) + " for action " + str(action) + " with pacman in " + str(pacman_pos))
   # print(dist_from_biggest_dist_food)
-  return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
+
+  fleeGhostsPos = [gameState.getGhostPosition(i) for i in range(1, gameState.getNumAgents()) if gameState.getGhostState(i).scaredTimer <= 0]
+  sumBonusForFleeGhosts = sum([bonusForFleeGhost(gameState, ghostPos) for ghostPos in fleeGhostsPos])
+
+  return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + \
+         (sumBonusForFleeGhosts/((gameState.getNumAgents()-1)*MAX_DIST_FROM_GHOST)) * 5
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
