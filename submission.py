@@ -147,8 +147,9 @@ def betterEvaluationFunction(gameState):
   # if i < 400:
     # print(i)
   return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + \
-         (200 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 200) +\
-        (200 if len(scaredGhostsIdxs) == 0 else (sumBonusForScaredGhosts/(len(scaredGhostsIdxs)*MIN_DIST_FROM_GHOST)) * 200)
+         (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400) +\
+        (20 if len(scaredGhostsIdxs) == 0 else (sumBonusForScaredGhosts/(len(scaredGhostsIdxs)*MIN_DIST_FROM_GHOST)) * 20) + \
+         (1 / len(gameState.getCapsules())) * 400 # TODO: change this to fit
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
