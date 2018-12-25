@@ -48,11 +48,14 @@ class ReflexAgent(Agent):
     legalMoves = gameState.getLegalActions()
 
     # Choose one of the best actions
-    scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
+    scores = [(action ,self.evaluationFunction(gameState, action)) for action in legalMoves]
     bestScore = max(scores)
     bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
     chosenIndex = random.choice(bestIndices) # Pick randomly among the best
-
+    for score in scores:
+      print(score)
+    print("chose " + str(legalMoves[chosenIndex]) + "\n\n")
+    time.sleep(1)
 
     return legalMoves[chosenIndex]
 
@@ -107,7 +110,7 @@ def betterEvaluationFunction(gameState):
   # print("food is in " + str(biggest_dist_food))
   # print("bfs returned " + str(dist_from_biggest_dist_food))
   # time.sleep(3)
-  return gameState.getScore() +((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
+  return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
