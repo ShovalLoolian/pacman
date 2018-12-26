@@ -1,6 +1,6 @@
-import random, util, time
+import random, util
 from game import Agent
-import ghostAgents, pacman
+import ghostAgents
 import math
 
 IS_FIRST = True
@@ -9,9 +9,21 @@ NUM_CAPSULS_INITIAL = 0
 MAXLEN = 6
 MAX_DIST_FROM_GHOST = 3
 MIN_DIST_FROM_GHOST = 20
+
+cache = util.Counter()
+
 #     ********* Reflex agent- sections a and b *********
 
 # util functions
+def cacheOut(fromPos, toPos):
+    global cache
+    return cache[(fromPos, toPos)]
+
+def cacheIn(fromPos, toPos, val):
+    global cache
+    if not cache[(fromPos, toPos)]:
+        cache[(fromPos, toPos)] = val
+        cache[(toPos, fromPos)] = val
 
 def furthest(pos, lst):
   furthestPos = None
@@ -38,16 +50,31 @@ def bonusForFleeGhost(gameState, ghostPos):
     pacmanPos = gameState.getPacmanPosition()
     if util.manhattanDistance(pacmanPos, ghostPos) >= MAX_DIST_FROM_GHOST:
         return MAX_DIST_FROM_GHOST
-    distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
+
+    cached = cacheOut(pacmanPos, ghostPos)
+
+    distFromGhost = cached if cached > 0 else bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
+
+    if cached == 0 and not distFromGhost == 0:
+        cacheIn(pacmanPos, ghostPos, distFromGhost)
+
     return min(MAX_DIST_FROM_GHOST, distFromGhost)
 
 def bonusForScaredGhost(gameState, ghostIdx):
+    # print("we ca")
     pacmanPos = gameState.getPacmanPosition()
     ghostPos = gameState.getGhostPosition(ghostIdx)
     timer = gameState.getGhostState(ghostIdx).scaredTimer
     if util.manhattanDistance(pacmanPos, ghostPos) >= timer:
         return 0
-    distFromGhost = bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
+
+    cached = cacheOut(pacmanPos, ghostPos)
+
+    distFromGhost = cached if cached > 0 else bfs(gameState.getWalls().deepCopy(), pacmanPos, ghostPos, 0)
+
+    if cached == 0 and not distFromGhost == 0:
+        cacheIn(pacmanPos, ghostPos, distFromGhost)
+
     return MIN_DIST_FROM_GHOST - distFromGhost if distFromGhost <= timer else 0
 
 # def bonusForScaredGhost(gameState, ghostPos)
@@ -73,16 +100,11 @@ class ReflexAgent(Agent):
     legalMoves = gameState.getLegalActions()
 
     # Choose one of the best actions
-    # scoresssss = [(action ,self.evaluationFunction(gameState, action)) for action in legalMoves]
     scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
 
     bestScore = max(scores)
     bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
     chosenIndex = random.choice(bestIndices) # Pick randomly among the best
-    # for score in scoresssss:
-    #   print(score)
-    # print("chose " + str(legalMoves[chosenIndex]) + " out of " + str(scoresssss) + "\n\n")
-    # time.sleep(1)
 
     return legalMoves[chosenIndex]
 
@@ -126,6 +148,7 @@ def betterEvaluationFunction(gameState):
   """
   global IS_FIRST
   global NUM_CAPSULS_INITIAL
+  global cache
 
   if IS_FIRST:
     NUM_CAPSULS_INITIAL = len(gameState.getCapsules())
@@ -137,14 +160,14 @@ def betterEvaluationFunction(gameState):
 
   furthest_food_pos = furthest(pacman_pos, food)
   biggest_dist_food = furthest(furthest_food_pos, food)
-  dist_from_biggest_dist_food = bfs(gameState.getWalls().deepCopy(), pacman_pos, biggest_dist_food, 0)\
-    if biggest_dist_food else 0
-  # print("pac is in " + str(pacman_pos))
-  # print("food is in " + str(biggest_dist_food))
-  # print("bfs returned " + str(dist_from_biggest_dist_food))
-  # time.sleep(3)
-  # print("biggest food pos is " + str(biggest_dist_food) + " for action " + str(action) + " with pacman in " + str(pacman_pos))
-  # print(dist_from_biggest_dist_food)
+
+  cached = cacheOut(pacman_pos, biggest_dist_food)
+
+  dist_from_biggest_dist_food = cached if cached > 0 else\
+      (bfs(gameState.getWalls().deepCopy(), pacman_pos, biggest_dist_food, 0) if biggest_dist_food else 0)
+
+  if cached == 0 and not dist_from_biggest_dist_food == 0:
+      cacheIn(pacman_pos, biggest_dist_food, dist_from_biggest_dist_food)
 
   fleeGhostsPos = [gameState.getGhostPosition(i) for i in range(1, gameState.getNumAgents()) if gameState.getGhostState(i).scaredTimer <= 0]
   sumBonusForFleeGhosts = sum([bonusForFleeGhost(gameState, ghostPos) for ghostPos in fleeGhostsPos])
@@ -153,9 +176,7 @@ def betterEvaluationFunction(gameState):
                    gameState.getGhostState(i).scaredTimer > 0]
   maxBonusForScaredGhosts = 0 if len(scaredGhostsIdxs) == 0 \
     else max([bonusForScaredGhost(gameState, i) for i in scaredGhostsIdxs])
-  # i = (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400)
-  # if i < 400:
-    # print(i)
+
   score = gameState.getScore()
   dist_from_food = ((diagonal - dist_from_biggest_dist_food) / diagonal)
   flee_bonus = (0 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)))
@@ -164,7 +185,6 @@ def betterEvaluationFunction(gameState):
 
   return score + dist_from_food * 10 + flee_bonus * 120 + scared_bonus * 130 + (capsules_bonus / NUM_CAPSULS_INITIAL) * 250
 
-  # TODO: cache bfs results
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
 
