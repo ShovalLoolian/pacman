@@ -151,15 +151,15 @@ def betterEvaluationFunction(gameState):
 
   scaredGhostsIdxs = [i for i in range(1, gameState.getNumAgents()) if
                    gameState.getGhostState(i).scaredTimer > 0]
-  minBonusForScaredGhosts = 0 if len(scaredGhostsIdxs) == 0 \
-    else min([bonusForScaredGhost(gameState, i) for i in scaredGhostsIdxs])
+  maxBonusForScaredGhosts = 0 if len(scaredGhostsIdxs) == 0 \
+    else max([bonusForScaredGhost(gameState, i) for i in scaredGhostsIdxs])
   # i = (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400)
   # if i < 400:
     # print(i)
   score = gameState.getScore()
   dist_from_food = ((diagonal - dist_from_biggest_dist_food) / diagonal)
   flee_bonus = (0 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)))
-  scared_bonus = (0 if len(scaredGhostsIdxs) == 0 else (minBonusForScaredGhosts/MIN_DIST_FROM_GHOST))
+  scared_bonus = (0 if len(scaredGhostsIdxs) == 0 else (maxBonusForScaredGhosts/MIN_DIST_FROM_GHOST))
   capsules_bonus = NUM_CAPSULS_INITIAL - len(gameState.getCapsules())
 
   return score + dist_from_food * 10 + flee_bonus * 120 + scared_bonus * 130 + (capsules_bonus / NUM_CAPSULS_INITIAL) * 250
