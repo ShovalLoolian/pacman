@@ -3,6 +3,9 @@ from game import Agent
 import ghostAgents, pacman
 import math
 
+IS_FIRST = True
+NUM_CAPSULS_INITIAL = 0
+
 MAXLEN = 6
 MAX_DIST_FROM_GHOST = 3
 MIN_DIST_FROM_GHOST = 20
@@ -121,6 +124,12 @@ def betterEvaluationFunction(gameState):
   gameState.getScore():
   The GameState class is defined in pacman.py and you might want to look into that for other helper methods.
   """
+  global IS_FIRST
+  global NUM_CAPSULS_INITIAL
+
+  if IS_FIRST:
+    NUM_CAPSULS_INITIAL = len(gameState.getCapsules())
+    IS_FIRST = False
 
   pacman_pos = gameState.getPacmanPosition()
   food = gameState.getFood().asList()
@@ -142,15 +151,20 @@ def betterEvaluationFunction(gameState):
 
   scaredGhostsIdxs = [i for i in range(1, gameState.getNumAgents()) if
                    gameState.getGhostState(i).scaredTimer > 0]
-  sumBonusForScaredGhosts = sum([bonusForScaredGhost(gameState, i) for i in scaredGhostsIdxs])
+  minBonusForScaredGhosts = 0 if len(scaredGhostsIdxs) == 0 \
+    else min([bonusForScaredGhost(gameState, i) for i in scaredGhostsIdxs])
   # i = (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400)
   # if i < 400:
     # print(i)
-  return gameState.getScore() + ((diagonal - dist_from_biggest_dist_food) / diagonal) * 10 + \
-         (400 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)) * 400) +\
-        (20 if len(scaredGhostsIdxs) == 0 else (sumBonusForScaredGhosts/(len(scaredGhostsIdxs)*MIN_DIST_FROM_GHOST)) * 20) + \
-         (1 / len(gameState.getCapsules())) * 400 # TODO: change this to fit
+  score = gameState.getScore()
+  dist_from_food = ((diagonal - dist_from_biggest_dist_food) / diagonal)
+  flee_bonus = (0 if len(fleeGhostsPos) == 0 else (sumBonusForFleeGhosts/(len(fleeGhostsPos)*MAX_DIST_FROM_GHOST)))
+  scared_bonus = (0 if len(scaredGhostsIdxs) == 0 else (minBonusForScaredGhosts/MIN_DIST_FROM_GHOST))
+  capsules_bonus = NUM_CAPSULS_INITIAL - len(gameState.getCapsules())
 
+  return score + dist_from_food * 10 + flee_bonus * 120 + scared_bonus * 130 + (capsules_bonus / NUM_CAPSULS_INITIAL) * 250
+
+  # TODO: cache bfs results
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 
 
