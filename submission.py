@@ -230,7 +230,7 @@ def betterEvaluationFunction(gameState):
   scared_bonus = (0 if len(scaredGhostsIdxs) == 0 else (maxBonusForScaredGhosts/MIN_DIST_FROM_GHOST))
   capsules_bonus = 0 if NUM_CAPSULS_INITIAL == 0 else (NUM_CAPSULS_INITIAL - len(gameState.getCapsules())) / NUM_CAPSULS_INITIAL
 
-  return score + dist_from_food * 10 + flee_bonus * 115 + scared_bonus * 135 + capsules_bonus * 250
+  return score + dist_from_food * 10 + flee_bonus * 80 + scared_bonus * 100 + capsules_bonus * 300
 
 #     ********* MultiAgent Search Agents- sections c,d,e,f*********
 

@@ -498,7 +498,6 @@ class Game:
     self.totalAgentTimes = [0 for agent in agents]
     self.totalAgentTimeWarnings = [0 for agent in agents]
     self.agentTimeout = False
-    self.my_avg_time = 0
 
   def getProgress(self):
     if self.gameOver:
@@ -579,7 +578,6 @@ class Game:
     agentIndex = self.startingIndex
     numAgents = len( self.agents )
 
-    my_counter = 0
     while not self.gameOver:
       # Fetch the next agent
       agent = self.agents[agentIndex]
@@ -612,6 +610,7 @@ class Game:
       action = None
       self.mute()
       if self.catchExceptions:
+
         try:
           timed_func = TimeoutFunction(agent.getAction, int(self.rules.getMoveTimeout(agentIndex)) - int(move_time))
           try:
@@ -651,13 +650,7 @@ class Game:
           self._agentCrash(agentIndex)
           return
       else:
-        my_base_time = time.time()
         action = agent.getAction(observation)
-        if agent == self.agents[0]:
-          my_move_time = time.time() - my_base_time
-          self.my_avg_time = (self.my_avg_time * my_counter + my_move_time) / (my_counter + 1)
-          my_counter += 1
-
       self.unmute()
 
       # Execute the action
