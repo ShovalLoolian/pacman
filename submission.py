@@ -25,6 +25,11 @@ def cacheIn(fromPos, toPos, val):
         cache[(fromPos, toPos)] = val
         cache[(toPos, fromPos)] = val
 
+def checkResetCache(gameState):
+    global cache
+    if gameState.getScore() == 0:
+      cache = util.Counter()
+
 def furthest(pos, lst):
   furthestPos = None
   furthestDist = -1
@@ -96,6 +101,8 @@ class ReflexAgent(Agent):
     getAction takes a GameState and returns some Directions.X for some X in the set {North, South, West, East, Stop}
     ------------------------------------------------------------------------------
     """
+    checkResetCache(gameState)
+
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
 
@@ -136,6 +143,7 @@ class OriginalReflexAgent(Agent):
     ------------------------------------------------------------------------------
     """
     # Collect legal moves and successor states
+    checkResetCache(gameState)
     legalMoves = gameState.getLegalActions()
 
     # Choose one of the best actions
@@ -324,6 +332,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         The depth to which search should continue
 
     """
+    checkResetCache(gameState)
 
     # BEGIN_YOUR_CODE
 
@@ -380,6 +389,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Returns the minimax action using self.depth and self.evaluationFunction
     """
+    checkResetCache(gameState)
 
     legalMoves = gameState.getLegalActions()
 
@@ -408,6 +418,7 @@ class RandomExpectimaxAgent(MultiAgentSearchAgent):
       Returns the expectimax action using self.depth and self.evaluationFunction
       All ghosts should be modeled as choosing uniformly at random from their legal moves.
     """
+    checkResetCache(gameState)
 
     # BEGIN_YOUR_CODE
     legalMoves = gameState.getLegalActions()
@@ -437,6 +448,7 @@ class DirectionalExpectimaxAgent(MultiAgentSearchAgent):
       Returns the expectimax action using self.depth and self.evaluationFunction
       All ghosts should be modeled as using the DirectionalGhost distribution to choose from their legal moves.
     """
+    checkResetCache(gameState)
 
     # BEGIN_YOUR_CODE
     legalMoves = gameState.getLegalActions()
